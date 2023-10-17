@@ -1,28 +1,36 @@
 #!/usr/bin/env python3
-"""Defines a function that  provides some stats
-   about Nginx logs stored in MongoDB
+"""
+module for accessing nginx database
 """
 from pymongo import MongoClient
 
 
-def nginx_stats_check():
-    """provides some stats about Nginx logs stored in MongoDB:"""
-    client = MongoClient()
-    collection = client.logs.nginx
+client: MongoClient = MongoClient()
+logsDB = client['logs']
+ngix_collection = logsDB.nginx
 
-    doc_count = collection.count_documents({})
-    print('{} logs'.format(doc_count))
+doc_len = len(list(ngix_collection.find()))
+status_check_len = len(list(ngix_collection.find({
+    "method": "GET", "path": '/status'
+})))
+methods = {"GET": 0, "POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
 
-    methods_list = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    print("Methods:")
-    for method in methods_list:
-        method_count = collection.count_documents({"method": method})
-        print('\tmethod {}: {}'.format(method, method_count))
-    status_count = collection.count_documents({
-        "method": "GET", "path": "/status"
-    })
-    print('{} status check'.format(status_count))
+
+def methods_count(mongo_collection) -> None:
+    """
+    updates the total count for every methods in the dictionary
+
+    Args:
+        mongo_collection (_type_): _description_
+    """
+    for key in methods.keys():
+        methods[key] = len(list(mongo_collection.find({"method": key})))
 
 
 if __name__ == "__main__":
-    nginx_stats_check()
+    methods_count(ngix_collection)
+    print(f"{doc_len} logs")
+    print("Methods:")
+    for k, v in methods.items():
+        print(f"\tmethod {k}: {v}")
+    print(f"{status_check_len} status check")
