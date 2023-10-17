@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""
-Top students
-"""
+""" 101-students.py """
 
 
 def top_students(mongo_collection):
-    """ returns all students sorted by average score """
+    """ top_students"""
     return mongo_collection.aggregate([
         {
             "$project":
